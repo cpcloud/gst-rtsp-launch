@@ -1,11 +1,13 @@
 let
   pkgs = import <nixpkgs> { };
-  getFlags = pkgs.writeShellScriptBin "get_flags" ''
+  buildServer = pkgs.writeShellScriptBin "build_server" ''
     set -euo pipefail
 
-    ${pkgs.pkg-config}/bin/pkg-config \
+    FLAGS=($(${pkgs.pkg-config}/bin/pkg-config \
       --cflags \
-      --libs glib-2.0 gstreamer-rtsp-server-1.0 gstreamer-1.0 gstreamer-plugins-base-1.0
+      --libs glib-2.0 gstreamer-rtsp-server-1.0 gstreamer-1.0 gstreamer-plugins-base-1.0))
+
+    ${pkgs.clang_11}/bin/clang++ ''${FLAGS[@]} -O3 src/gst-rtsp-launch.cpp -o gst-rtsp-launch
   '';
 in
 pkgs.mkShell {
@@ -20,8 +22,6 @@ pkgs.mkShell {
     gst-plugins-ugly
     gst-plugins-base
     pkg-config
-    cmake
-    clang
-    getFlags
+    buildServer
   ];
 }
